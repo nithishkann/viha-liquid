@@ -64,6 +64,8 @@
     <div class="product-card__footer">
       <span class="product-card__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
         <meta itemprop="priceCurrency" content="{{ cart.currency.iso_code }}">
+        <meta itemprop="availability" content="https://schema.org/{% if card_product.available %}InStock{% else %}OutOfStock{% endif %}">
+        <meta itemprop="url" content="{{ shop.url }}{{ card_product.url }}">
         <span itemprop="price" content="{{ card_product.price | divided_by: 100.0 }}">{{ card_product.price | money }}</span>
         {% if card_product.compare_at_price > card_product.price %}
           <s class="product-card__compare">{{ card_product.compare_at_price | money }}</s>

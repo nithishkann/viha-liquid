@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0F5A43">
 
-  <title>
-    {{ page_title }}{% if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif %}
-    {% if current_page != 1 %} &ndash; Page {{ current_page }}{% endif %}
-    {% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}
-  </title>
+  <title>{{- page_title -}}{% if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif %}{% if current_page != 1 %} &ndash; Page {{ current_page }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}</title>
 
   {% if page_description %}
     <meta name="description" content="{{ page_description | escape }}">
@@ -22,6 +18,60 @@
   {% if settings.favicon != blank %}
     <link rel="icon" type="image/png" href="{{ settings.favicon | img_url: '32x32' }}">
   {% endif %}
+
+  {%- comment -%} Open Graph / Twitter Card — resolve the best available image once {%- endcomment -%}
+  {%- assign social_image = page_image | default: settings.social_share_image -%}
+  <meta property="og:site_name" content="{{ shop.name }}">
+  <meta property="og:type" content="{% if template contains 'product' %}og:product{% else %}website{% endif %}">
+  <meta property="og:title" content="{{ page_title | escape }}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  {%- if page_description -%}
+    <meta property="og:description" content="{{ page_description | escape }}">
+  {%- endif -%}
+  {%- if social_image != blank -%}
+    <meta property="og:image" content="https:{{ social_image | img_url: '1200x630' }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+  {%- else -%}
+    <meta name="twitter:card" content="summary">
+  {%- endif -%}
+  <meta name="twitter:title" content="{{ page_title | escape }}">
+  {%- if page_description -%}
+    <meta name="twitter:description" content="{{ page_description | escape }}">
+  {%- endif -%}
+
+  {%- comment -%} Global structured data — Organization + WebSite/SearchAction {%- endcomment -%}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": {{ shop.name | json }},
+      "url": {{ shop.url | json }}
+      {%- if settings.favicon != blank -%},"logo": {{ settings.favicon | img_url: '512x512' | prepend: 'https:' | json }}{%- endif -%}
+      {%- assign social_links = '' -%}
+      {%- if settings.social_instagram_link != blank -%}{%- assign social_links = social_links | append: settings.social_instagram_link | append: ',' -%}{%- endif -%}
+      {%- if settings.social_facebook_link != blank -%}{%- assign social_links = social_links | append: settings.social_facebook_link | append: ',' -%}{%- endif -%}
+      {%- if settings.social_youtube_link != blank -%}{%- assign social_links = social_links | append: settings.social_youtube_link | append: ',' -%}{%- endif -%}
+      {%- if social_links != '' -%}
+        ,"sameAs": {{ social_links | split: ',' | json }}
+      {%- endif -%}
+    }
+  </script>
+  {%- capture search_target -%}{{ shop.url }}{{ routes.search_url }}?q={search_term_string}{%- endcapture -%}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": {{ shop.name | json }},
+      "url": {{ shop.url | json }},
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {{ search_target | json }},
+        "query-input": "required name=search_term_string"
+      }
+    }
+  </script>
 
   {%- comment -%} Preconnect for fonts {%- endcomment -%}
   <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
@@ -49,11 +99,6 @@
 
   {%- comment -%} Theme stylesheet {%- endcomment -%}
   {{ 'theme.css' | asset_url | stylesheet_tag }}
-
-  {%- comment -%} Open Graph / Social {%- endcomment -%}
-  {% if settings.social_instagram_link != blank %}
-    <meta property="og:site_name" content="{{ shop.name }}">
-  {% endif %}
 </head>
 
 <body class="template-{{ template.name }}{% if template.suffix != blank %} template-{{ template.name }}-{{ template.suffix }}{% endif %}">

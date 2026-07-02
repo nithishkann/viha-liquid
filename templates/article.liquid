@@ -54,6 +54,36 @@
     </div>
   </div>
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ shop.url | json }} },
+      { "@type": "ListItem", "position": 2, "name": {{ blog.title | json }}, "item": {{ shop.url | append: blog.url | json }} },
+      { "@type": "ListItem", "position": 3, "name": {{ article.title | json }}, "item": {{ shop.url | append: article.url | json }} }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": {{ article.title | json }},
+    "url": {{ shop.url | append: article.url | json }},
+    "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }}
+    {%- if article.updated_at -%},"dateModified": {{ article.updated_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }}{%- endif -%}
+    {%- if article.image -%},"image": {{ article.image | img_url: '1200x' | prepend: 'https:' | json }}{%- endif -%}
+    {%- if article.author != blank -%},"author": { "@type": "Person", "name": {{ article.author | json }} }{%- endif -%},
+    "publisher": {
+      "@type": "Organization",
+      "name": {{ shop.name | json }}
+      {%- if settings.favicon != blank -%},"logo": { "@type": "ImageObject", "url": {{ settings.favicon | img_url: '512x512' | prepend: 'https:' | json }} }{%- endif -%}
+    },
+    "description": {{ article.excerpt_or_content | strip_html | truncate: 200 | json }}
+  }
+  </script>
+
   {%- comment -%} ── Back link ─── {%- endcomment -%}
   <div style="padding:1.25rem 3rem;border-bottom:1px solid var(--color-cream-dark);background:var(--color-paper);">
     <a href="{{ blog.url }}" style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:rgba(45,45,45,0.55);transition:color 0.15s;" onmouseover="this.style.color='var(--color-maroon)'" onmouseout="this.style.color='rgba(45,45,45,0.55)'">

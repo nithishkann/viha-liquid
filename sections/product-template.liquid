@@ -44,6 +44,18 @@
   </ol>
 </nav>
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": {{ shop.url | json }} },
+    { "@type": "ListItem", "position": 2, "name": {{ primary_collection.title | default: 'Shop' | json }}, "item": {{ primary_collection.url | default: '/collections/all' | prepend: shop.url | json }} },
+    { "@type": "ListItem", "position": 3, "name": {{ current_product.title | json }}, "item": {{ shop.url | append: current_product.url | json }} }
+  ]
+}
+</script>
+
 {%- comment -%} Mobile-only: show title + price ABOVE the image so they're immediately visible {%- endcomment -%}
 <div class="product-mob-bar">
   <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--color-gold);margin-bottom:4px;">{{ current_product.type | default: current_product.vendor }}</p>
@@ -111,6 +123,12 @@
   <div class="product-info" itemscope itemtype="https://schema.org/Product">
     <meta itemprop="name" content="{{ current_product.title | escape }}">
     <meta itemprop="description" content="{{ current_product.description | strip_html | truncate: 200 | escape }}">
+    <meta itemprop="sku" content="{{ current_product.selected_or_first_available_variant.sku }}">
+    {%- if current_product.vendor != blank -%}
+      <span itemprop="brand" itemscope itemtype="https://schema.org/Brand" style="display:none;">
+        <meta itemprop="name" content="{{ current_product.vendor | escape }}">
+      </span>
+    {%- endif -%}
 
     {%- comment -%} Desktop-only: vendor, name, stars, price (hidden on mobile — shown in product-mob-bar above) {%- endcomment -%}
     <div class="product-info__top">
@@ -125,6 +143,8 @@
 
       <div class="product-info__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
         <meta itemprop="priceCurrency" content="{{ cart.currency.iso_code }}">
+        <meta itemprop="availability" content="https://schema.org/{% if current_product.selected_or_first_available_variant.available %}InStock{% else %}OutOfStock{% endif %}">
+        <meta itemprop="url" content="{{ shop.url }}{{ current_product.url }}">
         <span itemprop="price" content="{{ current_product.selected_or_first_available_variant.price | divided_by: 100.0 }}">
           {{ current_product.selected_or_first_available_variant.price | money }}
         </span>

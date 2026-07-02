@@ -106,6 +106,17 @@
     ]
   },
   {
+    "name": "Social sharing",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "social_share_image",
+        "label": "Default social sharing image",
+        "info": "Used when a page (e.g. homepage, custom pages) doesn't have its own image. Recommended: 1200 x 630px."
+      }
+    ]
+  },
+  {
     "name": "Social media",
     "settings": [
       {
