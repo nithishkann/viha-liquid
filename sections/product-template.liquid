@@ -138,7 +138,7 @@
       <h1 class="product-info__name" itemprop="name">{{ current_product.title }}</h1>
 
       {%- comment -%} Judge.me preview badge — real stars + count, links to the reviews widget; empty until there are reviews {%- endcomment -%}
-      <div class="jdgm-widget jdgm-preview-badge" data-id="{{ current_product.id }}" style="margin:0.75rem 0;"></div>
+      <div class="jdgm-widget jdgm-preview-badge" style="margin:0.75rem 0;">{{ current_product.metafields.judgeme.badge }}</div>
 
       <div class="product-info__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
         <meta itemprop="priceCurrency" content="{{ cart.currency.iso_code }}">
@@ -159,7 +159,7 @@
 
     {%- comment -%} Mobile-only: star rating (price is already in product-mob-bar) {%- endcomment -%}
     <div class="product-info__mob-rating" style="margin-bottom:0.75rem;">
-      <div class="jdgm-widget jdgm-preview-badge" data-id="{{ current_product.id }}"></div>
+      <div class="jdgm-widget jdgm-preview-badge">{{ current_product.metafields.judgeme.badge }}</div>
     </div>
 
     <div class="product-info__desc" itemprop="description">{{ current_product.description }}</div>
@@ -275,10 +275,10 @@
 
   {%- comment -%}
     Judge.me Review Widget.
-    Preferred (OS 2.0): add the Judge.me "Review Widget" APP BLOCK here via
-    Theme Editor → this Product section → Add block → Apps → Judge.me. App blocks
-    get the product context from Shopify directly, so reviews load reliably.
-    Fallback below (manual jdgm div) only renders if no app block has been added.
+    Primary: the Judge.me "Review Widget" APP BLOCK added via Theme Editor
+    (Product section → Add block → Apps → Judge.me), captured in templates/product.json.
+    Fallback: Judge.me's official manual snippet (renders review data server-side from
+    the judgeme metafields), used only if no app block has been added.
   {%- endcomment -%}
   {%- if section.blocks.size > 0 -%}
     {%- for block in section.blocks -%}
@@ -287,9 +287,7 @@
       {%- endif -%}
     {%- endfor -%}
   {%- else -%}
-    <div class="jdgm-widget jdgm-review-widget"
-         data-id="{{ current_product.id }}"
-         data-product-title="{{ current_product.title | escape }}"></div>
+    <!-- Start of Judge.me code -->{% assign has_legacy = false %}{% if current_product.metafields.judgeme.widget.size > 20 %}{% assign has_legacy = true %}{% endif %}<div style='clear:both'></div><div id='judgeme_product_reviews' class='jdgm-widget jdgm-review-widget' data-product-title='{{ current_product.title | escape }}' data-id='{{ current_product.id }}' data-product-id='{{ current_product.id }}' data-widget='review' data-auto-install='false' data-shop-reviews-count='{{ shop.metafields.judgeme.shop_reviews_count | default: 0 | escape }}' data-entry-point='review_widget.js' data-entry-key='review-widget/main.js'>{% if has_legacy %}<div class='jdgm-legacy-widget-content' style='display: none;'>{{ current_product.metafields.judgeme.widget }}</div>{% endif %}</div>{% if current_product.metafields.judgeme.review_widget_data %}<script>jdgm.data ||= {}; jdgm.data.reviewWidget ||= {}; jdgm.data.reviewWidget[{{ current_product.id }}] = {{ current_product.metafields.judgeme.review_widget_data }}</script>{% endif %}<!-- End of Judge.me code -->
   {%- endif -%}
 </section>
 

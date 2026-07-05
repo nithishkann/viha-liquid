@@ -52,7 +52,7 @@
       stars/count); auto-hidden on products with no reviews per Judge.me settings. {%- endcomment -%}
     <div class="product-card__meta">
       <span class="product-card__cat" itemprop="category">{{ card_product.type | default: card_product.vendor }}</span>
-      <div class="jdgm-widget jdgm-preview-badge product-card__rating" data-id="{{ card_product.id }}"></div>
+      <div class="jdgm-widget jdgm-preview-badge product-card__rating">{{ card_product.metafields.judgeme.badge }}</div>
     </div>
 
     {%- comment -%} Product title {%- endcomment -%}
