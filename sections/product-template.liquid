@@ -273,10 +273,24 @@
     </div>
   </div>
 
-  {%- comment -%} Judge.me review widget — hydrated by the app script (loaded via content_for_header) {%- endcomment -%}
-  <div class="jdgm-widget jdgm-review-widget"
-       data-id="{{ current_product.id }}"
-       data-product-title="{{ current_product.title | escape }}"></div>
+  {%- comment -%}
+    Judge.me Review Widget.
+    Preferred (OS 2.0): add the Judge.me "Review Widget" APP BLOCK here via
+    Theme Editor → this Product section → Add block → Apps → Judge.me. App blocks
+    get the product context from Shopify directly, so reviews load reliably.
+    Fallback below (manual jdgm div) only renders if no app block has been added.
+  {%- endcomment -%}
+  {%- if section.blocks.size > 0 -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == '@app' -%}
+        {% render block %}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- else -%}
+    <div class="jdgm-widget jdgm-review-widget"
+         data-id="{{ current_product.id }}"
+         data-product-title="{{ current_product.title | escape }}"></div>
+  {%- endif -%}
 </section>
 
 <style>
@@ -326,6 +340,9 @@
 {% schema %}
 {
   "name": "Product",
-  "settings": []
+  "settings": [],
+  "blocks": [
+    { "type": "@app" }
+  ]
 }
 {% endschema %}
