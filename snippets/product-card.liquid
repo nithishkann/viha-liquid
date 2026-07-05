@@ -48,13 +48,11 @@
   {%- comment -%} Card info {%- endcomment -%}
   <div class="product-card__body">
 
-    {%- comment -%} Category + rating row {%- endcomment -%}
+    {%- comment -%} Category + rating row. Rating = Judge.me preview badge (real
+      stars/count); auto-hidden on products with no reviews per Judge.me settings. {%- endcomment -%}
     <div class="product-card__meta">
       <span class="product-card__cat" itemprop="category">{{ card_product.type | default: card_product.vendor }}</span>
-      <span class="product-card__rating" aria-label="4.8 out of 5">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-        4.8
-      </span>
+      <div class="jdgm-widget jdgm-preview-badge product-card__rating" data-id="{{ card_product.id }}"></div>
     </div>
 
     {%- comment -%} Product title {%- endcomment -%}

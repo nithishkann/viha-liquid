@@ -1942,4 +1942,11 @@ ul { list-style: none; }
   flex-shrink: 0;
 }
 
+/* ── Judge.me review widget ────────────────────────────────────────────────
+   The theme renders its own branded "Customer Reviews" heading (eyebrow +
+   serif title + ornament) above the widget, so hide Judge.me's built-in
+   duplicate title. Everything else (summary, histogram, write-review, reviews
+   list) is left to Judge.me. */
+.jdgm-rev-widg__title { display: none !important; }
+
 /* resync 1782980043 */
