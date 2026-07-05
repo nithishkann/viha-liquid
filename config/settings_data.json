@@ -1,15 +1,57 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "current": {
-    "font_heading": "libre_caslon_text_n7",
-    "font_body": "inter_n4",
     "color_maroon": "#0F5A43",
     "color_maroon_dark": "#0B4533",
     "color_gold": "#B8893D",
     "color_cream": "#F8F4EC",
     "color_cream_dark": "#E5DED1",
     "color_charcoal": "#2D2D2D",
+    "font_heading": "libre_caslon_text_n7",
+    "font_body": "inter_n4",
     "logo_height": 70,
     "logo_height_mobile": 55,
-    "cart_type": "drawer"
+    "cart_type": "drawer",
+    "sections": {
+      "announcement-bar": {
+        "type": "announcement-bar",
+        "settings": {
+          "enabled": true,
+          "text": "Ships pan-India & worldwide — rates calculated at checkout.",
+          "link": ""
+        }
+      },
+      "header": {
+        "type": "header",
+        "settings": {}
+      },
+      "footer": {
+        "type": "footer",
+        "settings": {
+          "brand_description": "Bringing the wisdom of ancient Ayurvedic traditions to modern rituals — pure, authentic, and crafted with love.",
+          "contact_email": "",
+          "contact_phone": "",
+          "contact_address": "",
+          "trust_badge_heading": "100% Pure & Natural",
+          "trust_badge_text": "No parabens · No sulphates · No artificial fragrances · Cruelty-free"
+        }
+      }
+    },
+    "content_for_index": [],
+    "blocks": {
+      "14060646107696862457": {
+        "type": "shopify://apps/judge-me-reviews/blocks/judgeme_core/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
+        "disabled": false,
+        "settings": {}
+      }
+    }
   }
 }
