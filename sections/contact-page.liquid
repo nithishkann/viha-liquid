@@ -82,8 +82,15 @@
       <div style="background:var(--color-maroon);padding:2rem;border-radius:2px;color:#fff;">
         <h3 style="font-family:var(--font-heading);font-size:1rem;font-weight:900;margin-bottom:1.25rem;letter-spacing:0.04em;">{{ section.settings.store_heading | default: 'Visit Our Store' }}</h3>
         <address style="font-style:normal;font-size:13px;color:rgba(255,255,255,0.8);line-height:2;">
-          {{ section.settings.store_address | default: "Viha Heritage Store<br>Bishop Garden, Raja Annamalaipuram<br>Chennai, Tamil Nadu 600 028<br>India" }}
+          {{ section.settings.store_address | default: "Viha<br>No 10, Bhagirathy Street, Raja Annamalaipuram<br>Chennai, Tamil Nadu 600 028<br>(Near Kamakshi Amman Temple)" }}
         </address>
+        {%- assign contact_map_url = section.settings.map_url | default: 'https://maps.app.goo.gl/4EASzgQfbGdXkLR57' -%}
+        {%- if contact_map_url != blank -%}
+        <a href="{{ contact_map_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;margin-top:1.25rem;padding:10px 18px;background:#fff;color:var(--color-maroon);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;border-radius:2px;text-decoration:none;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+          {{ section.settings.map_button_label | default: 'Get Directions' }}
+        </a>
+        {%- endif -%}
       </div>
 
       {%- for block in section.blocks -%}
@@ -139,6 +146,8 @@
     { "type": "text",     "id": "form_heading",  "label": "Form heading",  "default": "Send us a Message" },
     { "type": "text",     "id": "store_heading", "label": "Store card heading", "default": "Visit Our Store" },
     { "type": "richtext", "id": "store_address", "label": "Store address" },
+    { "type": "url",      "id": "map_url",          "label": "Map / directions link", "info": "Google Maps link the button opens (leave blank to use the default store location)" },
+    { "type": "text",     "id": "map_button_label", "label": "Map button label", "default": "Get Directions" },
     { "type": "text",     "id": "note_heading",  "label": "Note heading",  "default": "International customers:" },
     { "type": "textarea", "id": "note_text",     "label": "Note text" }
   ],
