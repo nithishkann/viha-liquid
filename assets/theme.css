@@ -1611,6 +1611,9 @@ ul { list-style: none; }
 .sbp-tile__label--dark { font-family: var(--font-heading); font-size: 20px; font-weight: 900; color: var(--color-charcoal); }
 .sbp-tile__sub--dark { font-size: 12px; color: rgba(45,45,45,0.65); font-style: italic; }
 .sbp-tile__eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-gold); }
+.sbp-tile__eyebrow--light { letter-spacing: 0.15em; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
+.sbp-tile__eyebrow--split { margin-bottom: 0.5rem; }
+.sbp-tile__sub--dark { margin-top: 0.5rem; }
 .sbp-tile__cta { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--color-maroon); margin-top: 0.75rem; transition: gap 0.2s; }
 .sbp-tile:hover .sbp-tile__cta { gap: 8px; }
 

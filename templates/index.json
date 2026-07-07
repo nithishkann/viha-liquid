@@ -39,8 +39,46 @@
       "type": "shop-by-purpose",
       "settings": {
         "eyebrow": "EXPLORE BY INTENTION",
-        "heading": "Shop by Purpose"
-      }
+        "heading": "Shop by Purpose",
+        "view_all_label": "View all"
+      },
+      "blocks": {
+        "sbp-large": {
+          "type": "large",
+          "settings": {
+            "badge": "Daily Rituals",
+            "title": "Daily Pooja",
+            "subtext": "Elevate your daily rituals with pure ingredients, authentic oil lamps, and hand-milled powders.",
+            "collection": "spiritual-pooja"
+          }
+        },
+        "sbp-small-1": {
+          "type": "small",
+          "settings": {
+            "title": "Festival Essentials",
+            "collection": "spiritual-pooja"
+          }
+        },
+        "sbp-small-2": {
+          "type": "small",
+          "settings": {
+            "eyebrow": "Beauty",
+            "title": "Ayurvedic Beauty",
+            "collection": "ayurveda-herbal"
+          }
+        },
+        "sbp-split": {
+          "type": "split",
+          "settings": {
+            "eyebrow": "New Beginnings",
+            "title": "Housewarming Gifts",
+            "subtext": "Thoughtful traditional gifts, hand-cast brass Ganeshas for new chapters.",
+            "cta_label": "Explore",
+            "collection": "home-living"
+          }
+        }
+      },
+      "block_order": ["sbp-large", "sbp-small-1", "sbp-small-2", "sbp-split"]
     },
     "beauty-promo": {
       "type": "beauty-promo",

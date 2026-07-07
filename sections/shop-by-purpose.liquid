@@ -5,72 +5,112 @@
         <p class="section__eyebrow">{{ section.settings.eyebrow }}</p>
         <h2 class="section__heading font-serif" id="sbp-heading">{{ section.settings.heading }}</h2>
       </div>
-      <a href="/collections/all" class="section__view-all" aria-label="View all collections">
-        View all
+      {%- if section.settings.view_all_label != blank -%}
+      <a href="{{ section.settings.view_all_url | default: '/collections/all' }}" class="section__view-all" aria-label="{{ section.settings.view_all_label | escape }}">
+        {{ section.settings.view_all_label }}
         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
       </a>
+      {%- endif -%}
     </div>
+
+    {%- assign large_blocks = section.blocks | where: 'type', 'large' -%}
+    {%- assign small_blocks = section.blocks | where: 'type', 'small' -%}
+    {%- assign split_blocks = section.blocks | where: 'type', 'split' -%}
 
     {%- comment -%} Responsive bento grid — stacks to single column on mobile {%- endcomment -%}
     <div class="sbp-grid">
 
-      {%- comment -%} Large tile — Daily Pooja {%- endcomment -%}
-      <a href="/collections/spiritual-pooja" class="sbp-tile sbp-tile--large" aria-label="Daily Pooja collection">
-        {% if section.settings.img_daily_pooja != blank %}
-        <img
-          src="{{ section.settings.img_daily_pooja | image_url: width: 900 }}"
-          alt="Daily Pooja"
-          class="sbp-tile__img"
-          width="900" height="900"
-          loading="lazy"
-        >
-        {% else %}
-          {{ 'lifestyle-1' | placeholder_svg_tag: 'sbp-tile__img placeholder-svg' }}
-        {% endif %}
-        <div class="sbp-tile__overlay">
-          <span class="sbp-tile__badge">Daily Rituals</span>
-          <p class="sbp-tile__label">Daily Pooja</p>
-          <p class="sbp-tile__sub">Elevate your daily rituals with pure ingredients, authentic oil lamps, and hand-milled powders.</p>
-        </div>
-      </a>
+      {%- comment -%} Large tile (left column) {%- endcomment -%}
+      {%- for block in large_blocks -%}
+        {%- liquid
+          assign tile_url = block.settings.custom_link
+          if tile_url == blank and block.settings.collection != blank
+            assign tile_url = block.settings.collection.url
+          endif
+          if tile_url == blank
+            assign tile_url = '/collections/all'
+          endif
+          assign tile_img = block.settings.image | default: block.settings.collection.featured_image
+        -%}
+        <a href="{{ tile_url }}" class="sbp-tile sbp-tile--large" aria-label="{{ block.settings.title | escape }}" {{ block.shopify_attributes }}>
+          {% if tile_img %}
+          <img
+            src="{{ tile_img | image_url: width: 900 }}"
+            alt="{{ tile_img.alt | default: block.settings.title | escape }}"
+            class="sbp-tile__img"
+            width="900" height="900"
+            loading="lazy"
+          >
+          {% else %}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'sbp-tile__img placeholder-svg' }}
+          {% endif %}
+          <div class="sbp-tile__overlay">
+            {% if block.settings.badge != blank %}<span class="sbp-tile__badge">{{ block.settings.badge }}</span>{% endif %}
+            <p class="sbp-tile__label">{{ block.settings.title }}</p>
+            {% if block.settings.subtext != blank %}<p class="sbp-tile__sub">{{ block.settings.subtext }}</p>{% endif %}
+          </div>
+        </a>
+      {%- endfor -%}
 
       {%- comment -%} Right column: 2 top squares + 1 wide bottom {%- endcomment -%}
       <div class="sbp-right-col">
 
         <div class="sbp-top-row">
-          <a href="/collections/spiritual-pooja" class="sbp-tile sbp-tile--sm" aria-label="Festival Essentials collection">
-            {% if section.settings.img_festival != blank %}
-            <img src="{{ section.settings.img_festival | image_url: width: 600 }}" alt="Festival Essentials" class="sbp-tile__img" width="600" height="600" loading="lazy">
-            {% else %}{{ 'lifestyle-2' | placeholder_svg_tag: 'sbp-tile__img placeholder-svg' }}{% endif %}
-            <div class="sbp-tile__overlay">
-              <p class="sbp-tile__label">Festival Essentials</p>
-            </div>
-          </a>
-          <a href="/collections/ayurveda-herbal" class="sbp-tile sbp-tile--sm" aria-label="Ayurvedic Beauty collection">
-            {% if section.settings.img_ayurveda != blank %}
-            <img src="{{ section.settings.img_ayurveda | image_url: width: 600 }}" alt="Ayurvedic Beauty" class="sbp-tile__img" width="600" height="600" loading="lazy">
-            {% else %}{{ 'lifestyle-1' | placeholder_svg_tag: 'sbp-tile__img placeholder-svg' }}{% endif %}
-            <div class="sbp-tile__overlay">
-              <p class="sbp-tile__eyebrow" style="font-size:9px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:4px;">Beauty</p>
-              <p class="sbp-tile__label">Ayurvedic Beauty</p>
-            </div>
-          </a>
+          {%- for block in small_blocks -%}
+            {%- liquid
+              assign tile_url = block.settings.custom_link
+              if tile_url == blank and block.settings.collection != blank
+                assign tile_url = block.settings.collection.url
+              endif
+              if tile_url == blank
+                assign tile_url = '/collections/all'
+              endif
+              assign tile_img = block.settings.image | default: block.settings.collection.featured_image
+              assign placeholder_name = 'lifestyle-2'
+              if forloop.index == 2
+                assign placeholder_name = 'lifestyle-1'
+              endif
+            -%}
+            <a href="{{ tile_url }}" class="sbp-tile sbp-tile--sm" aria-label="{{ block.settings.title | escape }}" {{ block.shopify_attributes }}>
+              {% if tile_img %}
+              <img src="{{ tile_img | image_url: width: 600 }}" alt="{{ tile_img.alt | default: block.settings.title | escape }}" class="sbp-tile__img" width="600" height="600" loading="lazy">
+              {% else %}{{ placeholder_name | placeholder_svg_tag: 'sbp-tile__img placeholder-svg' }}{% endif %}
+              <div class="sbp-tile__overlay">
+                {% if block.settings.eyebrow != blank %}<p class="sbp-tile__eyebrow sbp-tile__eyebrow--light">{{ block.settings.eyebrow }}</p>{% endif %}
+                <p class="sbp-tile__label">{{ block.settings.title }}</p>
+              </div>
+            </a>
+          {%- endfor -%}
         </div>
 
-        {%- comment -%} Split tile — Housewarming Gifts {%- endcomment -%}
-        <a href="/collections/home-living" class="sbp-tile sbp-tile--split" aria-label="Housewarming Gifts collection">
-          <div class="sbp-tile__split-text">
-            <p class="sbp-tile__eyebrow" style="font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--color-gold);margin-bottom:0.5rem;">New Beginnings</p>
-            <p class="sbp-tile__label sbp-tile__label--dark">Housewarming<br>Gifts</p>
-            <p class="sbp-tile__sub sbp-tile__sub--dark" style="margin-top:0.5rem;font-size:12px;">Thoughtful traditional gifts, hand-cast brass Ganeshas for new chapters.</p>
-            <span class="sbp-tile__cta">Explore <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" style="display:inline;vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></span>
-          </div>
-          <div class="sbp-tile__split-img">
-            {% if section.settings.img_housewarming != blank %}
-            <img src="{{ section.settings.img_housewarming | image_url: width: 600 }}" alt="Housewarming Gifts" class="sbp-tile__img" width="600" height="600" loading="lazy">
-            {% else %}{{ 'lifestyle-2' | placeholder_svg_tag: 'sbp-tile__img placeholder-svg' }}{% endif %}
-          </div>
-        </a>
+        {%- comment -%} Split tile — text panel + image {%- endcomment -%}
+        {%- for block in split_blocks -%}
+          {%- liquid
+            assign tile_url = block.settings.custom_link
+            if tile_url == blank and block.settings.collection != blank
+              assign tile_url = block.settings.collection.url
+            endif
+            if tile_url == blank
+              assign tile_url = '/collections/all'
+            endif
+            assign tile_img = block.settings.image | default: block.settings.collection.featured_image
+          -%}
+          <a href="{{ tile_url }}" class="sbp-tile sbp-tile--split" aria-label="{{ block.settings.title | escape }}" {{ block.shopify_attributes }}>
+            <div class="sbp-tile__split-text">
+              {% if block.settings.eyebrow != blank %}<p class="sbp-tile__eyebrow sbp-tile__eyebrow--split">{{ block.settings.eyebrow }}</p>{% endif %}
+              <p class="sbp-tile__label sbp-tile__label--dark">{{ block.settings.title }}</p>
+              {% if block.settings.subtext != blank %}<p class="sbp-tile__sub sbp-tile__sub--dark">{{ block.settings.subtext }}</p>{% endif %}
+              {% if block.settings.cta_label != blank %}
+              <span class="sbp-tile__cta">{{ block.settings.cta_label }} <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" style="display:inline;vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></span>
+              {% endif %}
+            </div>
+            <div class="sbp-tile__split-img">
+              {% if tile_img %}
+              <img src="{{ tile_img | image_url: width: 600 }}" alt="{{ tile_img.alt | default: block.settings.title | escape }}" class="sbp-tile__img" width="600" height="600" loading="lazy">
+              {% else %}{{ 'lifestyle-2' | placeholder_svg_tag: 'sbp-tile__img placeholder-svg' }}{% endif %}
+            </div>
+          </a>
+        {%- endfor -%}
 
       </div>
     </div>
@@ -82,13 +122,62 @@
 {
   "name": "Shop by Purpose",
   "settings": [
-    { "type": "text",         "id": "eyebrow",          "label": "Eyebrow text",            "default": "EXPLORE BY INTENTION" },
-    { "type": "text",         "id": "heading",          "label": "Section heading",          "default": "Shop by Purpose" },
-    { "type": "image_picker", "id": "img_daily_pooja",  "label": "Daily Pooja image" },
-    { "type": "image_picker", "id": "img_festival",     "label": "Festival Essentials image" },
-    { "type": "image_picker", "id": "img_ayurveda",     "label": "Ayurvedic Beauty image" },
-    { "type": "image_picker", "id": "img_housewarming", "label": "Housewarming Gifts image" }
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow text", "default": "EXPLORE BY INTENTION" },
+    { "type": "text", "id": "heading", "label": "Section heading", "default": "Shop by Purpose" },
+    { "type": "text", "id": "view_all_label", "label": "View all label", "default": "View all", "info": "Leave empty to hide the link" },
+    { "type": "url", "id": "view_all_url", "label": "View all link", "info": "Defaults to /collections/all" }
   ],
-  "presets": [{ "name": "Shop by Purpose" }]
+  "blocks": [
+    {
+      "type": "large",
+      "name": "Large tile (left)",
+      "limit": 1,
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Falls back to the collection image if empty" },
+        { "type": "text", "id": "badge", "label": "Badge", "default": "Daily Rituals" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Daily Pooja" },
+        { "type": "textarea", "id": "subtext", "label": "Description", "default": "Elevate your daily rituals with pure ingredients, authentic oil lamps, and hand-milled powders." },
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "url", "id": "custom_link", "label": "Custom link", "info": "Overrides the collection link" }
+      ]
+    },
+    {
+      "type": "small",
+      "name": "Small tile (top right)",
+      "limit": 2,
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Falls back to the collection image if empty" },
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow (optional)" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Festival Essentials" },
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "url", "id": "custom_link", "label": "Custom link", "info": "Overrides the collection link" }
+      ]
+    },
+    {
+      "type": "split",
+      "name": "Split tile (bottom right)",
+      "limit": 1,
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Falls back to the collection image if empty" },
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "New Beginnings" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Housewarming Gifts" },
+        { "type": "textarea", "id": "subtext", "label": "Description", "default": "Thoughtful traditional gifts, hand-cast brass Ganeshas for new chapters." },
+        { "type": "text", "id": "cta_label", "label": "Link label", "default": "Explore" },
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "url", "id": "custom_link", "label": "Custom link", "info": "Overrides the collection link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Shop by Purpose",
+      "blocks": [
+        { "type": "large" },
+        { "type": "small" },
+        { "type": "small", "settings": { "eyebrow": "Beauty", "title": "Ayurvedic Beauty" } },
+        { "type": "split" }
+      ]
+    }
+  ]
 }
 {% endschema %}
