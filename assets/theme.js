@@ -30,6 +30,37 @@ function trapFocus(el) {
   });
 }
 
+/* Format cents into the shop's real money format (e.g. "Rs.1,234.00").
+   Reads window.theme.moneyFormat (injected in theme.liquid) so the AJAX-rendered
+   cart matches the server-rendered `| money` output exactly — no ₹/Rs. mismatch.
+   Handles all Shopify amount placeholders; HTML in the format is stripped. */
+function formatMoney(cents) {
+  if (typeof cents === 'string') cents = cents.replace(/[^0-9.-]/g, '');
+  const format = (window.theme && window.theme.moneyFormat) || '₹{{amount}}';
+  function withDelimiters(number, precision, thousands, decimal) {
+    precision = precision == null ? 2 : precision;
+    thousands = thousands == null ? ',' : thousands;
+    decimal = decimal == null ? '.' : decimal;
+    if (isNaN(number) || number == null) return '0';
+    number = (number / 100.0).toFixed(precision);
+    const parts = number.split('.');
+    const whole = parts[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + thousands);
+    return whole + (parts[1] ? decimal + parts[1] : '');
+  }
+  const match = format.match(/\{\{\s*(\w+)\s*\}\}/);
+  const key = match ? match[1] : 'amount';
+  let value;
+  switch (key) {
+    case 'amount_no_decimals': value = withDelimiters(cents, 0); break;
+    case 'amount_with_comma_separator': value = withDelimiters(cents, 2, '.', ','); break;
+    case 'amount_no_decimals_with_comma_separator': value = withDelimiters(cents, 0, '.', ','); break;
+    case 'amount_with_space_separator': value = withDelimiters(cents, 2, ' ', ','); break;
+    case 'amount_no_decimals_with_space_separator': value = withDelimiters(cents, 0, ' '); break;
+    default: value = withDelimiters(cents, 2);
+  }
+  return format.replace(/\{\{\s*\w+\s*\}\}/, value).replace(/<\/?[^>]+>/g, '').trim();
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    ANNOUNCEMENT BAR — close button
 ══════════════════════════════════════════════════════════════════════════════ */
@@ -141,23 +172,33 @@ const CartDrawer = (function () {
   const drawer  = $('.cart-drawer');
   if (!overlay || !drawer) return {};
 
+  let lastOpener = null;
+
   function open() {
     overlay.classList.add('is-open');
     drawer.classList.add('is-open');
     document.body.style.overflow = 'hidden';
+    $$('[data-cart-open]').forEach(b => b.setAttribute('aria-expanded', 'true'));
     refreshCart();
+    // Move focus into the dialog and trap it (a11y — matches mobile menu behaviour).
+    const closeBtn = $('[data-cart-close]', drawer);
+    if (closeBtn) closeBtn.focus();
+    trapFocus(drawer);
   }
 
   function close() {
     overlay.classList.remove('is-open');
     drawer.classList.remove('is-open');
     document.body.style.overflow = '';
+    $$('[data-cart-open]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    // Restore focus to whatever opened the drawer.
+    if (lastOpener && document.contains(lastOpener)) lastOpener.focus();
   }
 
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && drawer.classList.contains('is-open')) close(); });
 
-  $$('[data-cart-open]').forEach(btn => btn.addEventListener('click', open));
+  $$('[data-cart-open]').forEach(btn => btn.addEventListener('click', () => { lastOpener = btn; open(); }));
   $$('[data-cart-close]', drawer).forEach(btn => btn.addEventListener('click', close));
 
   function refreshCart() {
@@ -220,8 +261,8 @@ const CartDrawer = (function () {
             <span class="cart-item__price">${formatMoney(item.final_line_price)}</span>
           </div>
         </div>
-        <button class="cart-item__remove" aria-label="Remove item" data-remove="${escapeHtml(item.key)}">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <button class="cart-item__remove" aria-label="Remove ${escapeHtml(item.product_title)}" data-remove="${escapeHtml(item.key)}">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
@@ -241,38 +282,28 @@ const CartDrawer = (function () {
     });
   }
 
+  /* Read the current quantity from the DOM (the value the user sees) rather than
+     re-fetching /cart.js first — one network request per change instead of two. */
   function updateItemQty(key, delta) {
-    fetch('/cart.js')
-      .then(r => r.json())
-      .then(cart => {
-        const item = cart.items.find(i => i.key === key);
-        if (!item) return;
-        const newQty = Math.max(0, item.quantity + delta);
-        return fetch('/cart/change.js', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: key, quantity: newQty })
-        });
-      })
-      .then(r => r && r.json())
-      .then(cart => { if (cart) { renderCart(cart); updateBadge(cart.item_count); } })
-      .catch(console.error);
+    let row = null;
+    $$('.cart-item', drawer).forEach(el => { if (el.getAttribute('data-key') === key) row = el; });
+    const numEl = row && $('.cart-item__qty-num', row);
+    const current = numEl ? parseInt(numEl.textContent, 10) : NaN;
+    if (isNaN(current)) { refreshCart(); return; }
+    changeLine(key, Math.max(0, current + delta));
   }
 
-  function removeItem(key) {
+  function removeItem(key) { changeLine(key, 0); }
+
+  function changeLine(key, quantity) {
     fetch('/cart/change.js', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: key, quantity: 0 })
+      body: JSON.stringify({ id: key, quantity: quantity })
     })
     .then(r => r.json())
     .then(cart => { renderCart(cart); updateBadge(cart.item_count); })
     .catch(console.error);
-  }
-
-  function formatMoney(cents) {
-    const amount = (cents / 100).toFixed(2);
-    return '₹' + amount.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   return { open, close, refreshCart, updateBadge };
@@ -290,6 +321,11 @@ const CartDrawer = (function () {
     const variantId = btn.getAttribute('data-variant-id') || btn.getAttribute('data-add-to-cart');
     if (!variantId) return;
 
+    // Intercept the native form submit so ATC opens the drawer instead of
+    // full-page navigating to /cart (PDP button is a form submit button).
+    e.preventDefault();
+
+    const quantity = Math.max(1, parseInt(btn.getAttribute('data-quantity'), 10) || 1);
     const label = btn.querySelector('[data-atc-label]');
     const originalLabelText = label ? label.textContent : null;
     const originalAriaLabel = btn.getAttribute('aria-label');
@@ -302,7 +338,7 @@ const CartDrawer = (function () {
     fetch('/cart/add.js', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: variantId, quantity: 1 })
+      body: JSON.stringify({ id: variantId, quantity: quantity })
     })
     .then(r => r.json())
     .then(() => {
@@ -389,7 +425,7 @@ const CartDrawer = (function () {
                 ${p.image ? `<img class="search-result-card__img" src="${encodeURI(p.image)}" alt="${escapeHtml(p.title)}" loading="lazy">` : ''}
                 <div>
                   <p style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--color-maroon);line-height:1.3;">${escapeHtml(p.title)}</p>
-                  ${p.price ? `<p style="font-size:12px;font-weight:600;color:var(--color-maroon);margin-top:4px;">${formatMoneyCents(p.price)}</p>` : ''}
+                  ${p.price ? `<p style="font-size:12px;font-weight:600;color:var(--color-maroon);margin-top:4px;">${formatMoney(Math.round(parseFloat(p.price) * 100))}</p>` : ''}
                 </div>
               </a>`).join('')}
           </div>`;
@@ -397,10 +433,6 @@ const CartDrawer = (function () {
       .catch(() => {
         results.innerHTML = '<p style="color:rgba(45,45,45,0.5);font-size:13px;padding:1rem 0;">Search unavailable. Please try again.</p>';
       });
-  }
-
-  function formatMoneyCents(cents) {
-    return '₹' + (cents / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 })();
 
@@ -421,35 +453,10 @@ const CartDrawer = (function () {
     });
   });
 
-  /* Variant selector */
-  const variantSelect = $('[data-variant-select]');
-  const atcBtn        = $('[data-add-to-cart]');
-  if (variantSelect && atcBtn) {
-    variantSelect.addEventListener('change', () => {
-      const opt = variantSelect.options[variantSelect.selectedIndex];
-      atcBtn.setAttribute('data-variant-id', opt.value);
-      const available = opt.getAttribute('data-available') !== 'false';
-      atcBtn.disabled = !available;
-      atcBtn.textContent = available ? 'Add to Cart' : 'Sold Out';
-    });
-  }
+  /* Variant selection, quantity stepper and sticky ATC live in the product
+     section's own inline script (product-template.liquid), where the variant
+     data and price hooks are rendered. */
 
-})();
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   ORDER TRACKER
-══════════════════════════════════════════════════════════════════════════════ */
-(function initOrderTracker() {
-  const form = $('[data-tracker-form]');
-  if (!form) return;
-  const input = $('[data-tracker-input]', form);
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const orderId = input ? input.value.trim().toUpperCase() : '';
-    if (!orderId) return;
-    window.location.href = `/apps/track?order=${encodeURIComponent(orderId)}`;
-  });
 })();
 
 /* ═══════════════════════════════════════════════════════════════════════════

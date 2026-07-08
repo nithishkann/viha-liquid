@@ -12,14 +12,21 @@
     <h2 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:900;color:#fff;margin-bottom:0.75rem;">{{ section.settings.heading }}</h2>
     <p style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:1.75rem;line-height:1.75;">{{ section.settings.subtext }}</p>
     {% form 'customer', id: 'newsletter-signup-form' %}
-      <div style="display:flex;gap:8px;">
-        <input type="hidden" name="contact[tags]" value="newsletter">
-        <label for="newsletter-email" class="sr-only">Email address</label>
-        <input type="email" name="contact[email]" id="newsletter-email" required placeholder="your@email.com" aria-label="Email address"
-          style="flex:1;padding:13px 16px;border:1px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.07);color:#fff;font-size:13px;border-radius:2px;font-family:inherit;outline:none;" onfocus="this.style.borderColor='var(--color-gold)'" onblur="this.style.borderColor='rgba(255,255,255,0.20)'">
-        <button type="submit" class="btn btn--gold" style="padding:13px 18px;white-space:nowrap;font-size:11px;">Subscribe</button>
-      </div>
-      <p style="font-size:10px;color:rgba(255,255,255,0.30);margin-top:10px;">No spam. Unsubscribe anytime.</p>
+      {% if form.posted_successfully? %}
+        <p role="status" style="font-size:13px;color:var(--color-gold);border:1px solid rgba(184,137,61,0.4);border-radius:2px;padding:13px 16px;line-height:1.6;">Welcome to the Viha family — you're subscribed. Nandri!</p>
+      {% else %}
+        {% if form.errors %}
+          <p role="alert" style="font-size:12px;color:#f3c0b5;margin-bottom:10px;line-height:1.6;">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
+        {% endif %}
+        <div style="display:flex;gap:8px;">
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <label for="newsletter-email" class="sr-only">Email address</label>
+          <input type="email" name="contact[email]" id="newsletter-email" required autocomplete="email" placeholder="your@email.com" aria-label="Email address"
+            style="flex:1;min-width:0;padding:13px 16px;border:1px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.07);color:#fff;font-size:16px;border-radius:2px;font-family:inherit;outline:none;" onfocus="this.style.borderColor='var(--color-gold)'" onblur="this.style.borderColor='rgba(255,255,255,0.20)'">
+          <button type="submit" class="btn btn--gold" style="padding:13px 18px;white-space:nowrap;font-size:11px;">Subscribe</button>
+        </div>
+        <p style="font-size:10px;color:rgba(255,255,255,0.30);margin-top:10px;">No spam. Unsubscribe anytime.</p>
+      {% endif %}
     {% endform %}
   </div>
 </section>

@@ -34,11 +34,13 @@
     {%- comment -%} Logo {%- endcomment -%}
     <a href="/" class="header__logo" aria-label="{{ shop.name }} — Home">
       {% if settings.logo != blank %}
+        {%- comment -%} Height via custom property (not inline height) so the
+          mobile media query in theme.css can still shrink the logo. {%- endcomment -%}
         <img
           src="{{ settings.logo | img_url: 'medium' }}"
           alt="{{ shop.name }}"
           height="{{ settings.logo_height }}"
-          style="height:{{ settings.logo_height }}px;"
+          style="--logo-h:{{ settings.logo_height | default: 70 }}px;"
           loading="eager"
           fetchpriority="high"
         >

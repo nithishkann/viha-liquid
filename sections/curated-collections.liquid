@@ -8,53 +8,31 @@
     </div>
     <div class="curated__grid">
 
-      <a href="/collections/spiritual-pooja" class="curated__card" aria-label="Pooja Products collection">
-        {% if section.settings.img_pooja != blank %}
-          <img src="{{ section.settings.img_pooja | image_url: width: 800 }}" alt="Pooja Products" class="curated__img" width="800" height="800" loading="lazy">
-        {% else %}
-          {{ 'lifestyle-1' | placeholder_svg_tag: 'curated__img placeholder-svg' }}
-        {% endif %}
-        <div class="curated__card-body">
-          <p class="curated__label">Pooja Products</p>
-          <p class="curated__desc">Sacred essentials for daily &amp; festival rituals, from Vellerukku to Rudraksha malas.</p>
-          <span class="curated__link">
-            Shop collection
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-          </span>
-        </div>
-      </a>
-
-      <a href="/collections/jewelleries" class="curated__card" aria-label="Sacred Jewelry collection">
-        {% if section.settings.img_jewelry != blank %}
-          <img src="{{ section.settings.img_jewelry | image_url: width: 800 }}" alt="Sacred Jewelry" class="curated__img" width="800" height="800" loading="lazy">
-        {% else %}
-          {{ 'lifestyle-2' | placeholder_svg_tag: 'curated__img placeholder-svg' }}
-        {% endif %}
-        <div class="curated__card-body">
-          <p class="curated__label">Sacred Jewelry</p>
-          <p class="curated__desc">Temple jewellery, silver anklets, and Aimpon pieces steeped in heritage craft.</p>
-          <span class="curated__link">
-            Shop collection
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-          </span>
-        </div>
-      </a>
-
-      <a href="/collections/jewelleries" class="curated__card" aria-label="Traditional Clothing collection">
-        {% if section.settings.img_clothing != blank %}
-          <img src="{{ section.settings.img_clothing | image_url: width: 800 }}" alt="Traditional Clothing" class="curated__img" width="800" height="800" loading="lazy">
-        {% else %}
-          {{ 'lifestyle-1' | placeholder_svg_tag: 'curated__img placeholder-svg' }}
-        {% endif %}
-        <div class="curated__card-body">
-          <p class="curated__label">Traditional Clothing</p>
-          <p class="curated__desc">Salem silk sarees, silk veshtis, and festive attire for every sacred occasion.</p>
-          <span class="curated__link">
-            Shop collection
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-          </span>
-        </div>
-      </a>
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'card' -%}
+          {%- assign card_collection = collections[block.settings.collection] -%}
+          {%- assign card_url = block.settings.custom_link | default: card_collection.url | default: '/collections/all' -%}
+          {%- assign card_img = block.settings.image | default: card_collection.featured_image -%}
+          <a href="{{ card_url }}" class="curated__card" aria-label="{{ block.settings.label | escape }} collection" {{ block.shopify_attributes }}>
+            {% if card_img != blank %}
+              <img src="{{ card_img | image_url: width: 800 }}" alt="{{ card_img.alt | default: block.settings.label | escape }}" class="curated__img" width="800" height="800" loading="lazy">
+            {% else %}
+              {%- capture ph_name %}{% cycle 'lifestyle-1', 'lifestyle-2' %}{% endcapture -%}
+              {{ ph_name | placeholder_svg_tag: 'curated__img placeholder-svg' }}
+            {% endif %}
+            <div class="curated__card-body">
+              <p class="curated__label">{{ block.settings.label }}</p>
+              {% if block.settings.description != blank %}
+                <p class="curated__desc">{{ block.settings.description }}</p>
+              {% endif %}
+              <span class="curated__link">
+                Shop collection
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+              </span>
+            </div>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
 
     </div>
   </div>
@@ -64,12 +42,31 @@
 {
   "name": "Curated Collections",
   "settings": [
-    { "type": "text",         "id": "eyebrow",     "label": "Eyebrow text",   "default": "HAND-PICKED FOR YOU" },
-    { "type": "text",         "id": "heading",     "label": "Section heading", "default": "Curated Collections" },
-    { "type": "image_picker", "id": "img_pooja",   "label": "Pooja Products image" },
-    { "type": "image_picker", "id": "img_jewelry", "label": "Sacred Jewelry image" },
-    { "type": "image_picker", "id": "img_clothing","label": "Traditional Clothing image" }
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow text",    "default": "HAND-PICKED FOR YOU" },
+    { "type": "text", "id": "heading", "label": "Section heading", "default": "Curated Collections" }
   ],
-  "presets": [{ "name": "Curated Collections" }]
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Collection card",
+      "settings": [
+        { "type": "text",         "id": "label",       "label": "Title", "default": "Pooja Products" },
+        { "type": "textarea",     "id": "description", "label": "Description" },
+        { "type": "collection",   "id": "collection",  "label": "Collection", "info": "Card links here; its featured image is used if no image is picked" },
+        { "type": "url",          "id": "custom_link", "label": "Custom link (overrides the collection link)" },
+        { "type": "image_picker", "id": "image",       "label": "Image" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Curated Collections",
+      "blocks": [
+        { "type": "card", "settings": { "label": "Pooja Products", "description": "Sacred essentials for daily & festival rituals, from Vellerukku to Rudraksha malas.", "collection": "spiritual-pooja" } },
+        { "type": "card", "settings": { "label": "Sacred Jewelry", "description": "Temple jewellery, silver anklets, and Aimpon pieces steeped in heritage craft.", "collection": "jewelleries" } },
+        { "type": "card", "settings": { "label": "Traditional Clothing", "description": "Salem silk sarees, silk veshtis, and festive attire for every sacred occasion.", "collection": "sarees" } }
+      ]
+    }
+  ]
 }
 {% endschema %}

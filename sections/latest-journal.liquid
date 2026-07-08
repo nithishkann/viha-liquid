@@ -20,7 +20,7 @@
         {%- endif -%}
         <a href="{{ article.url }}" class="journal__card">
           {%- if article.image -%}
-            <img src="{{ article.image | img_url: '600x400' }}" alt="{{ article.image.alt | default: article.title | escape }}" class="journal__img" loading="lazy">
+            <img src="{{ article.image | image_url: width: 600, height: 400, crop: 'center' }}" alt="{{ article.image.alt | default: article.title | escape }}" class="journal__img" width="600" height="400" loading="lazy">
           {%- endif -%}
           <div class="journal__card-body">
             <p class="journal__date">{{ article.published_at | date: '%b %d, %Y' }}</p>

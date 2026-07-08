@@ -9,16 +9,17 @@
       </div>
       <p class="tracker__sub">{{ section.settings.subtext | default: 'Enter your Viha order ID to get real-time updates on your sacred items.' }}</p>
 
-      <form class="tracker__form" data-tracker-form action="/pages/track-order" method="get" role="search">
+      <form class="tracker__form" action="/pages/track-order" method="get" role="search">
         <label for="tracker-input" class="sr-only">Order ID</label>
         <div class="tracker__form-row">
           <input
             id="tracker-input"
             type="text"
             name="order"
-            placeholder="e.g. VH-89241 or VIHA-12345"
+            placeholder="e.g. #1234"
             class="tracker__input"
             autocomplete="off"
+            required
             aria-label="Enter your Viha order ID"
           >
           <button type="submit" class="tracker__btn">

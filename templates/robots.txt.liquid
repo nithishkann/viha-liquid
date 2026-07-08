@@ -1,0 +1,17 @@
+{%- comment -%}
+  Renders Shopify's default robots rules verbatim (all default disallows + the
+  auto-generated sitemap). Behaviour is identical to having no custom template —
+  this exists only so future crawl rules can be added here without losing the
+  defaults. To add a rule, insert it inside the matching group loop; do not
+  remove the default_groups loop or you lose Shopify's built-in protections
+  (/cart, /checkout, /account, search query params, etc.).
+{%- endcomment -%}
+{% for group in robots.default_groups %}
+  {{- group.user_agent }}
+  {% for rule in group.rules -%}
+    {{ rule }}
+  {% endfor -%}
+  {%- if group.sitemap != blank -%}
+    {{ group.sitemap }}
+  {%- endif -%}
+{% endfor %}

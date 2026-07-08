@@ -28,9 +28,12 @@
     <div class="founder__img-wrap">
       {% if section.settings.image != blank %}
         <img
-          src="{{ section.settings.image | img_url: 'master' }}"
-          alt="{{ section.settings.founder_name | default: 'Anitha Kuppusamy' }}"
+          src="{{ section.settings.image | image_url: width: 900 }}"
+          srcset="{{ section.settings.image | image_url: width: 450 }} 450w, {{ section.settings.image | image_url: width: 900 }} 900w"
+          sizes="(min-width: 768px) 440px, 100vw"
+          alt="{{ section.settings.image.alt | default: section.settings.founder_name | default: 'Anitha Kuppusamy' }}"
           class="founder__img"
+          width="900" height="1200"
           loading="lazy"
         >
       {% else %}

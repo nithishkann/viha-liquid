@@ -24,9 +24,11 @@
               {%- assign panel_id = 'tab-panel-' | append: section.id | append: '-' | append: forloop.index -%}
               <a href="/collections/{{ block.settings.collection }}"
                 class="pill-btn{% if forloop.first %} is-active{% endif %}"
+                id="{{ panel_id }}-tab"
                 data-tab-pill
                 data-tab-target="{{ panel_id }}"
                 role="tab"
+                aria-controls="{{ panel_id }}"
                 aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
                 {{ block.shopify_attributes }}>
                 {{ block.settings.label | default: pill_col.title }}
@@ -42,7 +44,7 @@
         {%- if block.type == 'category_pill' -%}
           {%- assign tab_col = collections[block.settings.collection] -%}
           {%- assign panel_id = 'tab-panel-' | append: section.id | append: '-' | append: forloop.index -%}
-          <div class="tab-panel" id="{{ panel_id }}" {% unless forloop.first %}hidden{% endunless %}>
+          <div class="tab-panel" id="{{ panel_id }}" role="tabpanel" aria-labelledby="{{ panel_id }}-tab" {% unless forloop.first %}hidden{% endunless %}>
             {%- if tab_col != blank and tab_col.products.size > 0 -%}
               <div class="collection-scroll">
                 {%- for product in tab_col.products limit: section.settings.products_to_show -%}

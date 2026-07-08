@@ -17,14 +17,14 @@
       <form id="viha-track-form" onsubmit="vihaTrackOrder(event);" style="display:flex;flex-direction:column;gap:1rem;">
         <div>
           <label for="track-order-id" style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:rgba(45,45,45,0.6);margin-bottom:6px;">Order ID / Order Number *</label>
-          <input type="text" id="track-order-id" placeholder="e.g. #1234 or VIHA-1234" required
-            style="width:100%;padding:0.875rem 1rem;border:1.5px solid var(--color-cream-dark);border-radius:2px;font-size:14px;font-family:inherit;color:var(--color-charcoal);background:#fff;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
+          <input type="text" id="track-order-id" name="order" placeholder="e.g. #1234" required autocomplete="off"
+            style="width:100%;padding:0.875rem 1rem;border:1.5px solid var(--color-cream-dark);border-radius:2px;font-size:16px;font-family:inherit;color:var(--color-charcoal);background:#fff;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
             onfocus="this.style.borderColor='var(--color-maroon)'" onblur="this.style.borderColor='var(--color-cream-dark)'">
         </div>
         <div>
           <label for="track-email" style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:rgba(45,45,45,0.6);margin-bottom:6px;">Email Address *</label>
-          <input type="email" id="track-email" placeholder="Email used at checkout" required
-            style="width:100%;padding:0.875rem 1rem;border:1.5px solid var(--color-cream-dark);border-radius:2px;font-size:14px;font-family:inherit;color:var(--color-charcoal);background:#fff;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
+          <input type="email" id="track-email" placeholder="Email used at checkout" required autocomplete="email"
+            style="width:100%;padding:0.875rem 1rem;border:1.5px solid var(--color-cream-dark);border-radius:2px;font-size:16px;font-family:inherit;color:var(--color-charcoal);background:#fff;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
             onfocus="this.style.borderColor='var(--color-maroon)'" onblur="this.style.borderColor='var(--color-cream-dark)'">
         </div>
         <button type="submit" class="btn btn--primary" style="justify-content:center;margin-top:0.5rem;">
@@ -34,7 +34,7 @@
       </form>
 
       {%- comment -%} Result panel (shown via JS) {%- endcomment -%}
-      <div id="track-result" style="display:none;margin-top:2rem;padding-top:2rem;border-top:1px solid var(--color-cream-dark);">
+      <div id="track-result" role="status" aria-live="polite" style="display:none;margin-top:2rem;padding-top:2rem;border-top:1px solid var(--color-cream-dark);">
         <div id="track-result-inner"></div>
       </div>
     </div>
@@ -87,28 +87,30 @@ function vihaTrackOrder(e) {
 
   if (!orderId || !email) return;
 
-  // Redirect to Shopify native order status (works for logged-in customers)
-  // For guest orders, Shopify uses token-based URL; redirect to account orders as fallback
-  // Build with textContent for the user-supplied orderId so a crafted value
-  // (e.g. "<img src=x onerror=…>") can't inject markup (DOM-XSS).
-  inner.innerHTML = '<div style="text-align:center;padding:1rem;">'
-    + '<div style="width:40px;height:40px;border:3px solid var(--color-cream-dark);border-top-color:var(--color-maroon);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div>'
-    + '<p style="font-size:13px;color:rgba(45,45,45,0.6);">Looking up order <strong style="color:var(--color-maroon);"></strong>...</p>'
+  // Live per-order tracking needs an app/API lookup we don't have — the real
+  // status lives in the customer's Shopify order history. Be honest about that
+  // and hand them a clear next step instead of faking a lookup.
+  // User-supplied values are inserted via textContent (never string-concatenated
+  // into innerHTML) so crafted input can't inject markup (DOM-XSS).
+  inner.innerHTML = '<div style="text-align:center;">'
+    + '<p style="font-size:14px;font-weight:700;color:var(--color-maroon);margin-bottom:0.5rem;" data-track-order-line></p>'
+    + '<p style="font-size:13px;color:rgba(45,45,45,0.65);line-height:1.75;margin-bottom:1.25rem;">Live tracking updates for your order are in your secure Viha order history. Sign in with <strong style="color:var(--color-charcoal);" data-track-email></strong> — we\'ll email you a one-time code, no password needed — then open your order to see its current status.</p>'
+    + '<a class="btn btn--primary" style="justify-content:center;" href="{{ routes.account_url }}">View My Order Status</a>'
     + '</div>';
-  inner.querySelector('strong').textContent = '#' + orderId;
+  inner.querySelector('[data-track-order-line]').textContent = 'Order #' + orderId;
+  inner.querySelector('[data-track-email]').textContent = email;
   result.style.display = 'block';
-
-  setTimeout(function() {
-    // Order-level deep links aren't reliable without an app/API lookup — send the
-    // customer to their account order history instead (prompts login if needed).
-    window.location.href = '{{ routes.account_url }}';
-  }, 1200);
+  result.scrollIntoView({ block: 'nearest' });
 }
-</script>
 
-<style>
-@keyframes spin { to { transform: rotate(360deg); } }
-</style>
+// Prefill from ?order= (the homepage tracker submits here with that param).
+(function () {
+  var order = new URLSearchParams(window.location.search).get('order');
+  if (!order) return;
+  document.getElementById('track-order-id').value = order.trim();
+  document.getElementById('track-email').focus();
+})();
+</script>
 
 {% schema %}
 {

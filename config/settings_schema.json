@@ -123,7 +123,7 @@
         "type": "text",
         "id": "business_street_address",
         "label": "Street address",
-        "default": "Bishop Garden, Raja Annamalaipuram"
+        "default": "No 10, Bhagirathy Street, Raja Annamalaipuram"
       },
       {
         "type": "text",

@@ -67,10 +67,11 @@
     {%- if article.updated_at -%},"dateModified": {{ article.updated_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }}{%- endif -%}
     {%- if article.image -%},"image": {{ article.image | img_url: '1200x' | prepend: 'https:' | json }}{%- endif -%}
     {%- if article.author != blank -%},"author": { "@type": "Person", "name": {{ article.author | json }} }{%- endif -%},
+    {%- assign article_pub_logo = settings.logo | default: settings.favicon -%}
     "publisher": {
       "@type": "Organization",
       "name": {{ shop.name | json }}
-      {%- if settings.favicon != blank -%},"logo": { "@type": "ImageObject", "url": {{ settings.favicon | img_url: '512x512' | prepend: 'https:' | json }} }{%- endif -%}
+      {%- if article_pub_logo != blank -%},"logo": { "@type": "ImageObject", "url": {{ article_pub_logo | image_url: width: 512 | prepend: 'https:' | json }} }{%- endif -%}
     },
     "description": {{ article.excerpt_or_content | strip_html | truncate: 200 | json }}
   }

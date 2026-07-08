@@ -117,7 +117,34 @@
       "settings": {
         "eyebrow": "HAND-PICKED FOR YOU",
         "heading": "Curated Collections"
-      }
+      },
+      "blocks": {
+        "card-pooja": {
+          "type": "card",
+          "settings": {
+            "label": "Pooja Products",
+            "description": "Sacred essentials for daily & festival rituals, from Vellerukku to Rudraksha malas.",
+            "collection": "spiritual-pooja"
+          }
+        },
+        "card-jewelry": {
+          "type": "card",
+          "settings": {
+            "label": "Sacred Jewelry",
+            "description": "Temple jewellery, silver anklets, and Aimpon pieces steeped in heritage craft.",
+            "collection": "jewelleries"
+          }
+        },
+        "card-clothing": {
+          "type": "card",
+          "settings": {
+            "label": "Traditional Clothing",
+            "description": "Salem silk sarees, silk veshtis, and festive attire for every sacred occasion.",
+            "collection": "sarees"
+          }
+        }
+      },
+      "block_order": ["card-pooja", "card-jewelry", "card-clothing"]
     },
     "latest-journal": {
       "type": "latest-journal",
@@ -125,6 +152,13 @@
         "eyebrow": "FROM OUR JOURNAL",
         "heading": "Stories, Rituals & Wisdom",
         "posts_to_show": 3
+      }
+    },
+    "newsletter": {
+      "type": "newsletter-signup",
+      "settings": {
+        "heading": "Join the Viha Family",
+        "subtext": "Festival reminders, Ayurvedic wisdom, and new arrivals from Mrs Anitha Kuppusamy — delivered to your inbox."
       }
     },
     "founder": {
@@ -157,6 +191,7 @@
     "bestsellers",
     "curated-collections",
     "latest-journal",
+    "newsletter",
     "founder",
     "order-tracker"
   ]

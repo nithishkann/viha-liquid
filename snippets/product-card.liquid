@@ -4,7 +4,8 @@
 {%- endcomment -%}
 
 {%- assign card_product = product -%}
-{%- assign lazy = lazy | default: true -%}
+{%- assign lazy = lazy | default: true, allow_false: true -%}
+{%- assign priority = priority | default: false, allow_false: true -%}
 
 <article class="product-card" itemscope itemtype="https://schema.org/Product">
 
@@ -13,10 +14,16 @@
     {% if card_product.featured_image %}
       <img
         class="product-card__img"
-        src="{{ card_product.featured_image | img_url: '500x625', crop: 'center' }}"
+        src="{{ card_product.featured_image | image_url: width: 500, height: 625, crop: 'center' }}"
+        srcset="{{ card_product.featured_image | image_url: width: 200, height: 250, crop: 'center' }} 200w,
+                {{ card_product.featured_image | image_url: width: 300, height: 375, crop: 'center' }} 300w,
+                {{ card_product.featured_image | image_url: width: 400, height: 500, crop: 'center' }} 400w,
+                {{ card_product.featured_image | image_url: width: 500, height: 625, crop: 'center' }} 500w"
+        sizes="(max-width: 767px) 45vw, (max-width: 1279px) 30vw, 22vw"
         alt="{{ card_product.featured_image.alt | default: card_product.title | escape }}"
         width="500" height="625"
         loading="{% if lazy %}lazy{% else %}eager{% endif %}"
+        {% if priority %}fetchpriority="high"{% endif %}
         itemprop="image"
       >
     {% else %}
@@ -27,12 +34,20 @@
       </div>
     {% endif %}
 
-    {%- comment -%} Top-left badge {%- endcomment -%}
-    {% if card_product.tags contains 'bestseller' or card_product.tags contains 'top-rated' %}
+    {%- comment -%} Top-left badge — Sale takes priority (strongest conversion signal) {%- endcomment -%}
+    {% if card_product.compare_at_price > card_product.price %}
+      {%- assign card_discount = card_product.compare_at_price | minus: card_product.price | times: 100.0 | divided_by: card_product.compare_at_price | round -%}
+      <span class="product-card__badge product-card__badge--sale">{% if card_discount >= 5 %}{{ card_discount }}% Off{% else %}Sale{% endif %}</span>
+    {% elsif card_product.tags contains 'bestseller' or card_product.tags contains 'top-rated' %}
       <span class="product-card__badge product-card__badge--rated">Top Rated</span>
     {% elsif card_product.tags contains 'new-arrival' %}
       <span class="product-card__badge product-card__badge--new">New</span>
     {% endif %}
+
+    {%- comment -%} Sold-out overlay so out-of-stock is scannable in the grid {%- endcomment -%}
+    {% unless card_product.available %}
+      <span class="product-card__soldout">Sold Out</span>
+    {% endunless %}
 
     {%- comment -%} Top-right wishlist button {%- endcomment -%}
     <button class="product-card__wishlist"
@@ -75,23 +90,33 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
           </svg>
         </a>
-        <button
-          class="product-card__atc"
-          aria-label="Add {{ card_product.title | escape }} to cart"
-          data-add-to-cart="{{ card_product.variants.first.id }}"
-          data-variant-id="{{ card_product.variants.first.id }}"
-          {% unless card_product.available %}disabled aria-disabled="true"{% endunless %}
-        >
-          {% if card_product.available %}
+        {% if card_product.available and card_product.variants.size > 1 %}
+          {%- comment -%} Multi-variant: route to the product page to pick a variant
+            rather than silently quick-adding variant #1 (wrong-item risk). {%- endcomment -%}
+          <a href="{{ card_product.url }}" class="product-card__atc" aria-label="Choose options for {{ card_product.title | escape }}">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"/>
             </svg>
-          {% else %}
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-            </svg>
-          {% endif %}
-        </button>
+          </a>
+        {% else %}
+          <button
+            class="product-card__atc"
+            aria-label="Add {{ card_product.title | escape }} to cart"
+            data-add-to-cart="{{ card_product.variants.first.id }}"
+            data-variant-id="{{ card_product.variants.first.id }}"
+            {% unless card_product.available %}disabled aria-disabled="true"{% endunless %}
+          >
+            {% if card_product.available %}
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"/>
+              </svg>
+            {% else %}
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+              </svg>
+            {% endif %}
+          </button>
+        {% endif %}
       </div>
     </div>
 

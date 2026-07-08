@@ -19,8 +19,11 @@
     <link rel="icon" type="image/png" href="{{ settings.favicon | img_url: '32x32' }}">
   {% endif %}
 
-  {%- comment -%} Open Graph / Twitter Card — resolve the best available image once {%- endcomment -%}
-  {%- assign social_image = page_image | default: settings.social_share_image -%}
+  {%- comment -%} Open Graph / Twitter Card — resolve the best available image once.
+    Chain: page's own image → configured default share image → shop logo, so
+    pages without their own image (homepage, custom pages) still get a preview
+    (matters for WhatsApp/Carthike link previews). {%- endcomment -%}
+  {%- assign social_image = page_image | default: settings.social_share_image | default: settings.logo -%}
   <meta property="og:site_name" content="{{ shop.name }}">
   <meta property="og:type" content="{% if template contains 'product' %}product{% else %}website{% endif %}">
   <meta property="og:title" content="{{ page_title | escape }}">
@@ -41,6 +44,10 @@
     <meta name="twitter:description" content="{{ page_description | escape }}">
   {%- endif -%}
 
+  {%- comment -%} Prefer the real logo for schema imagery; favicon is a poor-quality
+    fallback (Google uses this for the knowledge panel / local listing). {%- endcomment -%}
+  {%- assign schema_logo = settings.logo | default: settings.favicon -%}
+
   {%- comment -%} Global structured data — Organization + WebSite/SearchAction {%- endcomment -%}
   <script type="application/ld+json">
     {
@@ -48,7 +55,7 @@
       "@type": "Organization",
       "name": {{ shop.name | json }},
       "url": {{ shop.url | json }}
-      {%- if settings.favicon != blank -%},"logo": {{ settings.favicon | img_url: '512x512' | prepend: 'https:' | json }}{%- endif -%}
+      {%- if schema_logo != blank -%},"logo": {{ schema_logo | image_url: width: 512 | prepend: 'https:' | json }}{%- endif -%}
       {%- assign social_links = '' -%}
       {%- if settings.social_instagram_link != blank -%}{%- assign social_links = social_links | append: settings.social_instagram_link | append: ',' -%}{%- endif -%}
       {%- if settings.social_facebook_link != blank -%}{%- assign social_links = social_links | append: settings.social_facebook_link | append: ',' -%}{%- endif -%}
@@ -80,7 +87,7 @@
       "@type": "Store",
       "name": {{ shop.name | json }},
       "url": {{ shop.url | json }}
-      {%- if settings.favicon != blank -%},"image": {{ settings.favicon | img_url: '512x512' | prepend: 'https:' | json }}{%- endif -%}
+      {%- if schema_logo != blank -%},"image": {{ schema_logo | image_url: width: 512 | prepend: 'https:' | json }}{%- endif -%}
       {%- if settings.business_phone != blank -%},"telephone": {{ settings.business_phone | json }}{%- endif -%}
       ,"address": {
         "@type": "PostalAddress"
@@ -161,6 +168,7 @@
   {% render 'search-overlay' %}
 
   {%- comment -%} ── Theme JS ──────────────────────────────────────────── {%- endcomment -%}
+  <script>window.theme = window.theme || {}; window.theme.moneyFormat = {{ shop.money_format | json }};</script>
   <script src="{{ 'theme.js' | asset_url }}" defer></script>
 
   {%- comment -%} ── Shopify analytics / required scripts ──────────────── {%- endcomment -%}

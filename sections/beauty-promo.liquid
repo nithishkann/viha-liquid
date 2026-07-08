@@ -4,18 +4,16 @@
     <div class="beauty-promo__img-wrap">
       {% if section.settings.image != blank %}
         <img
-          src="{{ section.settings.image | img_url: 'master' }}"
+          src="{{ section.settings.image | image_url: width: 900 }}"
+          srcset="{{ section.settings.image | image_url: width: 450 }} 450w, {{ section.settings.image | image_url: width: 900 }} 900w"
+          sizes="(min-width: 768px) 50vw, 100vw"
           alt="{{ section.settings.image_alt | default: 'Ayurvedic Beauty' }}"
           class="beauty-promo__img"
+          width="900" height="900"
           loading="lazy"
         >
       {% else %}
-        <img
-          src="https://images.unsplash.com/photo-1607006342411-1a90c4fb3152?q=80&w=800"
-          alt="Ayurvedic Beauty Products"
-          class="beauty-promo__img"
-          loading="lazy"
-        >
+        {{ 'lifestyle-2' | placeholder_svg_tag: 'beauty-promo__img placeholder-svg' }}
       {% endif %}
     </div>
 
