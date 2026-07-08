@@ -168,6 +168,7 @@
   {% render 'search-overlay' %}
 
   {%- comment -%} ── Theme JS ──────────────────────────────────────────── {%- endcomment -%}
+  <script>window.theme = window.theme || {}; window.theme.moneyFormat = {{ shop.money_format | json }};</script>
   <script src="{{ 'theme.js' | asset_url }}" defer></script>
 
   {%- comment -%} ── Shopify analytics / required scripts ──────────────── {%- endcomment -%}

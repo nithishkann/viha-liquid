@@ -1,6 +1,11 @@
 {%- assign col = collection -%}
 {%- assign current_sort = request.params['sort_by'] | default: 'manual' -%}
 {%- assign active_handle = col.handle -%}
+{%- comment -%} The quick-filter below is client-side and only sees products on the
+  current page, so it's only honest (and only shown) when everything fits on one page. {%- endcomment -%}
+{%- assign per_page = section.settings.products_per_page | default: 24 -%}
+{%- assign is_paginated = false -%}
+{%- if col.products_count > per_page -%}{%- assign is_paginated = true -%}{%- endif -%}
 
 {%- comment -%} ── Collection hero ─── {%- endcomment -%}
 <section style="position:relative;background:var(--color-maroon-dark);padding:4rem 3rem 3.5rem;overflow:hidden;">
@@ -58,14 +63,25 @@
 
     {%- comment -%} Toolbar: search + sort + count + mobile filter toggle {%- endcomment -%}
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap;">
+      {%- comment -%} Quick-filter: honest only when all products are on one page (client-side, current-page scope).
+        On paginated collections, offer real catalog-wide search instead. {%- endcomment -%}
+      {% unless is_paginated %}
       <div style="position:relative;flex:1;min-width:180px;max-width:300px;">
         <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(45,45,45,0.35);pointer-events:none;" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
         </svg>
-        <input type="text" id="catalog-search" placeholder="Filter catalog…" aria-label="Filter products by name"
+        <input type="text" id="catalog-search" placeholder="Filter these products…" aria-label="Filter products by name"
           style="width:100%;padding:9px 12px 9px 36px;border:1px solid var(--color-cream-dark);background:var(--color-paper);font-size:12px;font-family:inherit;color:var(--color-charcoal);outline:none;border-radius:2px;transition:border-color 0.2s;"
           onfocus="this.style.borderColor='var(--color-gold)'" onblur="this.style.borderColor='var(--color-cream-dark)'">
       </div>
+      {% else %}
+      <a href="{{ routes.search_url }}" style="display:inline-flex;align-items:center;gap:6px;flex:1;min-width:180px;max-width:300px;padding:9px 12px 9px 36px;position:relative;border:1px solid var(--color-cream-dark);background:var(--color-paper);font-size:12px;color:var(--color-muted);border-radius:2px;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--color-gold)'" onmouseout="this.style.borderColor='var(--color-cream-dark)'">
+        <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(45,45,45,0.35);" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
+        </svg>
+        Search all products…
+      </a>
+      {% endunless %}
 
       <select data-sort-select aria-label="Sort products"
         style="padding:9px 32px 9px 12px;border:1px solid var(--color-cream-dark);background:var(--color-paper);font-size:11px;font-weight:600;font-family:inherit;color:var(--color-charcoal);cursor:pointer;outline:none;border-radius:2px;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%232D2D2D%27 stroke-width=%272%27%3E%3Cpath d=%27M6 9l6 6 6-6%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;">
@@ -146,7 +162,11 @@
           {% if col.products.size > 0 %}
             <div class="collection-grid" id="catalog-grid">
               {% for product in col.products %}
-                {% render 'product-card', product: product, lazy: true %}
+                {%- comment -%} First row loads eagerly for LCP; the very first card gets high fetch priority.
+                  (render args must be plain variables, not expressions — precompute card_lazy.) {%- endcomment -%}
+                {%- assign card_lazy = true -%}
+                {%- if forloop.index <= 4 -%}{%- assign card_lazy = false -%}{%- endif -%}
+                {% render 'product-card', product: product, lazy: card_lazy, priority: forloop.first %}
               {% endfor %}
             </div>
 
@@ -189,6 +209,16 @@
       </main>
 
     </div>{%- comment -%} / catalog-layout {%- endcomment -%}
+
+    {%- comment -%} ── Full collection description (SEO) — rendered unstripped, with links,
+      below the grid so it doesn't push products down but is fully crawlable. ─── {%- endcomment -%}
+    {%- if col.description != blank -%}
+      <section class="collection-seo-desc" aria-label="About {{ col.title | escape }}">
+        <h2 class="collection-seo-desc__title">About {{ section.settings.custom_heading | default: col.title }}</h2>
+        <div class="collection-seo-desc__body rte">{{ col.description }}</div>
+      </section>
+    {%- endif -%}
+
   </div>
 </div>
 
@@ -231,6 +261,34 @@
 @media (max-width: 1023px) {
   /* Mobile: pills visible, sidebar shown when filter toggled */
 }
+
+/* Full collection description (SEO block below grid) */
+.collection-seo-desc {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-cream-dark);
+}
+.collection-seo-desc__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-weight: 900;
+  color: var(--color-maroon);
+  margin-bottom: 1rem;
+}
+.collection-seo-desc__body {
+  max-width: 760px;
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(45,45,45,0.78);
+}
+.collection-seo-desc__body p { margin-bottom: 0.85rem; }
+.collection-seo-desc__body h2,
+.collection-seo-desc__body h3 { font-family: var(--font-heading); color: var(--color-maroon); font-weight: 700; margin: 1.25rem 0 0.5rem; font-size: 1rem; }
+.collection-seo-desc__body ul, .collection-seo-desc__body ol { padding-left: 1.25rem; margin-bottom: 0.85rem; }
+.collection-seo-desc__body li { margin-bottom: 0.35rem; }
+.collection-seo-desc__body a { color: var(--color-maroon); text-decoration: underline; }
+.collection-seo-desc__body a:hover { color: var(--color-gold); }
+.collection-seo-desc__body strong, .collection-seo-desc__body b { color: var(--color-charcoal); font-weight: 700; }
 </style>
 
 <script>
